@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Message Payload Viewer",
+  "short_name": "Msg Viewer",
+  "version": "0.1.0",
+  "description": "Capture email HTML and SMS text inside JSON responses and render them in a clean viewer tab.",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["http://localhost:8090/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://localhost:8090/*"],
+      "js": ["config.js", "content.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_title": "Open last captured email"
+  }
+}

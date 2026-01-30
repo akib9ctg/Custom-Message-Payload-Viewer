@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Message Payload Viewer</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f5f6f8;
+        --panel: #ffffff;
+        --text: #1d1f23;
+        --muted: #5c6370;
+        --border: #d7dbe0;
+        --accent: #1f6feb;
+      }
+      body {
+        margin: 0;
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--text);
+        background: var(--bg);
+      }
+      header {
+        padding: 16px 20px;
+        background: var(--panel);
+        border-bottom: 1px solid var(--border);
+      }
+      header h1 {
+        margin: 0 0 6px 0;
+        font-size: 18px;
+      }
+      header .meta {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      main {
+        padding: 16px 20px 24px 20px;
+      }
+      .tabs {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .tab {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 999px;
+        cursor: pointer;
+        font-size: 12px;
+      }
+      .tab.active {
+        border-color: var(--accent);
+        color: var(--accent);
+      }
+      #list {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .pagination {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+      }
+      .pagination .spacer {
+        flex: 1;
+      }
+      .pagination select {
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 6px 8px;
+        background: var(--panel);
+        font-size: 12px;
+      }
+      .pagination .page-info {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .email-card {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px 12px;
+        cursor: pointer;
+        text-align: left;
+        transition: border-color 0.12s ease, box-shadow 0.12s ease;
+      }
+      .email-card:hover {
+        border-color: var(--accent);
+      }
+      .email-card.active {
+        border-color: var(--accent);
+        box-shadow: 0 4px 10px rgba(31, 111, 235, 0.12);
+      }
+      .email-title {
+        font-size: 13px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .email-meta {
+        font-size: 11px;
+        color: var(--muted);
+      }
+      #preview {
+        width: 100%;
+        height: 70vh;
+        border: 1px solid var(--border);
+        background: var(--panel);
+      }
+      #smsPreview {
+        width: 100%;
+        min-height: 200px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        border-radius: 8px;
+        padding: 16px;
+        white-space: pre-wrap;
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 13px;
+        color: var(--text);
+        box-sizing: border-box;
+      }
+      #smsContainer {
+        display: none;
+      }
+      details {
+        margin-top: 12px;
+      }
+      textarea {
+        width: 100%;
+        height: 25vh;
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 12px;
+        padding: 10px;
+        box-sizing: border-box;
+      }
+      .empty {
+        padding: 20px;
+        background: #fff7e0;
+        border: 1px solid #f0d7a2;
+        color: #6b4a00;
+      }
+      .actions {
+        margin-top: 10px;
+        display: flex;
+        gap: 10px;
+      }
+      button {
+        padding: 8px 12px;
+        border: 1px solid var(--border);
+        background: var(--panel);
+        cursor: pointer;
+        border-radius: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Message Payload Viewer</h1>
+      <div class="meta" id="meta">Waiting for capture...</div>
+    </header>
+    <main>
+      <div class="tabs">
+        <button id="tabEmails" class="tab active" type="button">
+          Emails <span id="countEmails"></span>
+        </button>
+        <button id="tabSms" class="tab" type="button">
+          SMS <span id="countSms"></span>
+        </button>
+      </div>
+      <div id="list"></div>
+      <div class="pagination">
+        <button id="prevPage" type="button">Prev</button>
+        <div class="page-info" id="pageInfo">Page 1 of 1</div>
+        <button id="nextPage" type="button">Next</button>
+        <div class="spacer"></div>
+        <label class="page-info" for="pageSize">Per page</label>
+        <select id="pageSize">
+          <option value="4">4</option>
+          <option value="6" selected>6</option>
+          <option value="9">9</option>
+          <option value="12">12</option>
+        </select>
+      </div>
+      <div id="empty" class="empty" style="display: none;">
+        No captured HTML yet. Trigger a request, then reload this tab.
+      </div>
+      <iframe
+        id="preview"
+        sandbox="allow-forms allow-popups allow-modals"
+        referrerpolicy="no-referrer"
+      ></iframe>
+      <div id="smsContainer">
+        <div id="smsPreview"></div>
+      </div>
+      <div class="actions">
+        <button id="save">Save</button>
+        <button id="copy">Copy</button>
+      </div>
+      <details>
+        <summary>Raw HTML</summary>
+        <textarea id="raw" spellcheck="false"></textarea>
+      </details>
+    </main>
+    <script src="viewer.js"></script>
+  </body>
+</html>
