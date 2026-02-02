@@ -81,6 +81,11 @@
     );
   };
 
+  const looksLikeUrl = (value) => {
+    const t = value.trim();
+    return /^https?:\/\/\S+$/i.test(t);
+  };
+
   const tryParseJson = (text) => {
     try {
       return JSON.parse(text);
@@ -151,10 +156,17 @@
 
       if (HTML_FIELD in node && typeof node[HTML_FIELD] === "string") {
         if (isRouteAllowed(route)) {
-          if (looksLikeHtml(node[HTML_FIELD])) {
+          if (looksLikeHtml(node[HTML_FIELD]) || looksLikeUrl(node[HTML_FIELD])) {
+            let htmlValue = node[HTML_FIELD];
+            let urlValue = "";
+            if (looksLikeUrl(node[HTML_FIELD])) {
+              urlValue = node[HTML_FIELD].trim();
+              htmlValue = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Email Link</title><style>body{font-family:Arial,Helvetica,sans-serif;padding:24px;background:#f5f6f8;color:#1d1f23}a{color:#1f6feb;text-decoration:none}button{background:#1f6feb;color:#fff;border:none;border-radius:6px;padding:10px 14px;font-size:14px;cursor:pointer}</style></head><body><h2>Email Link</h2><p>This email contains a link:</p><p><a href="${urlValue}" target="_blank" rel="noreferrer">${urlValue}</a></p><p><button onclick="window.open('${urlValue}','_blank')">Open Link</button></p></body></html>`;
+            }
             results.push({
               type: "email",
-              html: node[HTML_FIELD],
+              html: htmlValue,
+              url: urlValue,
               route: route || "",
               id: id !== undefined ? String(id) : "",
               createdAt: createdAt || "",
